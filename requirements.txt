@@ -1,0 +1,12 @@
+# 数据获取
+yfinance>=0.2.32
+akshare>=1.18.2
+
+# 数据处理
+pandas>=2.2.3
+numpy>=2.2.3
+
+# VeighNa量化框架
+vnpy>=4.3.0
+vnpy-ctastrategy>=1.4.0
+vnpy-sqlite>=1.1.3
