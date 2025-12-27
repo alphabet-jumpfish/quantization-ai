@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 from entity.CommonStockDataset import CommonStockDataset
 from entity.TimeInterval import TimeInterval
-from service.SystemFetchDataset import SystemFetchDataset
+from service.fetch.SystemFetchDataset import SystemFetchDataset
 
 
 class ASIDataPoint:

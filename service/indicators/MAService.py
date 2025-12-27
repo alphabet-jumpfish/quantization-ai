@@ -1,9 +1,9 @@
-from typing import List, Optional, Dict
+from typing import List
 from datetime import datetime
 import pandas as pd
 from entity.CommonStockDataset import CommonStockDataset
 from entity.TimeInterval import TimeInterval
-from service.SystemFetchDataset import SystemFetchDataset
+from service.fetch.SystemFetchDataset import SystemFetchDataset
 
 class MADataPoint:
     """MA数据点，包含时间和值"""

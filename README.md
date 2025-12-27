@@ -61,15 +61,16 @@ pip install -r requirements.txt
 - **yfinance**: 全球市场数据（美股、港股等）
 
 **使用示例：**
+
 ```python
-from service.SystemFetchDataset import SystemFetchDataset
+from service.fetch.SystemFetchDataset import SystemFetchDataset
 
 fetch = SystemFetchDataset()
 datasets = fetch._acquire_stock_dataset(
-    symbol="000878",      # 股票代码
-    start_str="20251225", # 开始日期
-    end_str="20251225",   # 结束日期
-    period="1"            # 1分钟数据
+    symbol="000878",  # 股票代码
+    start_str="20251225",  # 开始日期
+    end_str="20251225",  # 结束日期
+    period="1"  # 1分钟数据
 )
 ```
 
@@ -178,11 +179,12 @@ composite_scores = regime_service.combine_factors([
 - 固定仓位管理
 
 **完整回测示例：**
+
 ```python
 from datetime import datetime
 from vnpy.trader.constant import Interval, Exchange
 from service.VeighNaBackTestService import VeighNaBackTestService, MultiFactorStrategy
-from service.SystemFetchDataset import SystemFetchDataset
+from service.fetch.SystemFetchDataset import SystemFetchDataset
 from entity.TimeInterval import TimeInterval
 
 # 1. 获取数据
@@ -199,11 +201,11 @@ backtest_service.setup_backtest(
     interval=Interval.MINUTE,
     start=datetime(2025, 12, 25, 9, 30),
     end=datetime(2025, 12, 25, 15, 0),
-    rate=0.0003,      # 手续费率
-    slippage=0.01,    # 滑点
-    size=100,         # 合约乘数
-    pricetick=0.01,   # 最小价格变动
-    capital=100000    # 初始资金
+    rate=0.0003,  # 手续费率
+    slippage=0.01,  # 滑点
+    size=100,  # 合约乘数
+    pricetick=0.01,  # 最小价格变动
+    capital=100000  # 初始资金
 )
 
 # 4. 加载数据
@@ -215,10 +217,10 @@ composite_scores = backtest_service.calculate_factors(datasets, time_interval)
 
 # 6. 运行回测
 strategy_setting = {
-    "buy_threshold": 0.5,    # 买入阈值
+    "buy_threshold": 0.5,  # 买入阈值
     "sell_threshold": -0.5,  # 卖出阈值
-    "fixed_size": 1,         # 固定手数
-    "stop_loss_pct": 0.05,   # 止损比例 5%
+    "fixed_size": 1,  # 固定手数
+    "stop_loss_pct": 0.05,  # 止损比例 5%
     "take_profit_pct": 0.10  # 止盈比例 10%
 }
 

@@ -1,11 +1,9 @@
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict
 import pandas as pd
-import numpy as np
 
 from service.indicators.DDService import DDService
 from service.indicators.RSIService import RSIService
-from service.indicators.BOLLService import BOLLService
 
 from entity.CommonStockDataset import CommonStockDataset
 from entity.TimeInterval import TimeInterval
@@ -266,7 +264,7 @@ class RegimeService:
 
 if __name__ == '__main__':
 
-    from service.SystemFetchDataset import SystemFetchDataset
+    from service.fetch.SystemFetchDataset import SystemFetchDataset
 
     fetch = SystemFetchDataset()
     datasets = fetch._acquire_stock_dataset("000878", "20251225", "20251225", "1")

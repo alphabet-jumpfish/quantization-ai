@@ -4,6 +4,8 @@
 import sys
 from pathlib import Path
 
+from service.fetch.SystemConvertService import SystemConvertService
+
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -113,29 +115,6 @@ class VeighNaBackTestService:
             capital=capital
         )
 
-    def load_data(self, dataset: List[CommonStockDataset], symbol: str, exchange: Exchange):
-        """加载历史数据"""
-        bars = []
-        for data in dataset:
-            dt = data['datatime']
-            if isinstance(dt, str):
-                dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-
-            bar = BarData(
-                symbol=symbol,
-                exchange=exchange,
-                datetime=dt,
-                interval=Interval.MINUTE,
-                volume=float(data.get('volume', 0)),
-                open_price=float(data['open']),
-                high_price=float(data['max']),
-                low_price=float(data['min']),
-                close_price=float(data['close']),
-                gateway_name="BACKTEST"
-            )
-            bars.append(bar)
-        return bars
-
     def calculate_factors(self, dataset: List[CommonStockDataset],
                           time_interval: TimeInterval,
                           factor_config: Dict = None) -> List[Dict]:
@@ -226,7 +205,7 @@ class VeighNaBackTestService:
 
 if __name__ == '__main__':
 
-    from service.SystemFetchDataset import SystemFetchDataset
+    from service.fetch.SystemFetchDataset import SystemFetchDataset
 
     print("=== VeighNa Multi-Factor Backtest System ===\n")
     # 获取数据
@@ -258,7 +237,8 @@ if __name__ == '__main__':
 
     # 加载数据
     print("[Step 2] Load Data")
-    bars = backtest_service.load_data(datasets, "000878", Exchange.SSE)
+    convert = SystemConvertService()
+    bars = convert.dataset_convert_bars(datasets, "000878", Exchange.SSE)
     print(f"  - Loaded {len(bars)} bars\n")
 
     # 计算因子
