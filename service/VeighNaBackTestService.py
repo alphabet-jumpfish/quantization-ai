@@ -116,37 +116,24 @@ class VeighNaBackTestService:
         )
 
     def calculate_factors(self, dataset: List[CommonStockDataset],
-                          time_interval: TimeInterval,
-                          factor_config: Dict = None) -> List[Dict]:
+                          time_interval: TimeInterval) -> List[Dict]:
         """计算多因子得分"""
         self.regime_service = RegimeService(time_interval=time_interval)
-        if factor_config is None:
-            factor_config = {
-                'macd': {'weight': 2.0, 'period': 20},
-                'rsi': {'weight': 1.5, 'period': 14},
-                'momentum': {'weight': 1.0, 'period': 20},
-                'volatility': {'weight': 1.0, 'period': 20}
-            }
-        # 注册因子
-        for factor_name, config in factor_config.items():
-            self.regime_service.register_factor(factor_name, weight=config['weight'])
-        # 计算因子
-        factor_results = []
-        for factor_name, config in factor_config.items():
-            if factor_name == 'macd':
-                factor_results.append(
-                    self.regime_service.calculate_macd(dataset, period=config['period']))
-            elif factor_name == 'rsi':
-                factor_results.append(
-                    self.regime_service.calculate_rsi_factor(dataset, period=config['period']))
-            elif factor_name == 'momentum':
-                factor_results.append(
-                    self.regime_service.calculate_momentum_factor(dataset, period=config['period']))
-            elif factor_name == 'volatility':
-                factor_results.append(
-                    self.regime_service.calculate_volatility_factor(dataset, period=config['period']))
-
-        self.composite_scores = self.regime_service.combine_factors(factor_results)
+        self.regime_service.register_factor('macd', weight=2.0)  # 趋势
+        self.regime_service.register_factor('volatility', weight=1.0)  # 波动率
+        self.regime_service.register_factor('rsi', weight=1.5)  # 超买超卖
+        self.regime_service.register_factor('momentum', weight=1.0)  # 动量
+        # 计算各个因子
+        macd_factors = self.regime_service.calculate_macd(dataset, period=20)
+        rsi_factors = self.regime_service.calculate_rsi_factor(dataset, period=14)
+        momentum_factors = self.regime_service.calculate_momentum_factor(dataset, period=20)
+        volatility_factors = self.regime_service.calculate_volatility_factor(dataset, period=20)
+        self.composite_scores = self.regime_service.combine_factors([
+            macd_factors,
+            rsi_factors,
+            momentum_factors,
+            volatility_factors
+        ])
         return self.composite_scores
 
     # core核心回测方法
@@ -206,19 +193,10 @@ class VeighNaBackTestService:
 if __name__ == '__main__':
 
     from service.fetch.SystemFetchDataset import SystemFetchDataset
-
-    print("=== VeighNa Multi-Factor Backtest System ===\n")
-    # 获取数据
-    try:
-        fetch = SystemFetchDataset()
-        datasets = fetch._acquire_stock_dataset("000878", "20251225", "20251225", "1")
-        print(f"[OK] Data loaded: {len(datasets)} bars\n")
-    except Exception as e:
-        print(f"[ERROR] Data fetch failed: {e}")
-        exit(1)
+    fetch = SystemFetchDataset()
+    datasets = fetch._acquire_stock_dataset("000878", "20251225", "20251225", "1")
     # 初始化回测服务
     backtest_service = VeighNaBackTestService()
-
     # 配置回测参数
     print("[Step 1] Configure Backtest")
     backtest_service.setup_backtest(
@@ -234,20 +212,16 @@ if __name__ == '__main__':
         capital=100000
     )
     print("  - Symbol: 000878 | Capital: 100,000 CNY\n")
-
-    # 加载数据
     print("[Step 2] Load Data")
     convert = SystemConvertService()
     bars = convert.dataset_convert_bars(datasets, "000878", Exchange.SSE)
     print(f"  - Loaded {len(bars)} bars\n")
-
     # 计算因子
     print("[Step 3] Calculate Factors")
     time_interval = TimeInterval.from_period(1)
     composite_scores = backtest_service.calculate_factors(datasets, time_interval)
     scores_array = np.array([s['composite_score'] for s in composite_scores])
     print(f"  - Scores: Min={scores_array.min():.4f}, Max={scores_array.max():.4f}, Mean={scores_array.mean():.4f}\n")
-
     # 运行回测
     print("[Step 4] Run Backtest")
     buy_threshold = np.percentile(scores_array, 70)

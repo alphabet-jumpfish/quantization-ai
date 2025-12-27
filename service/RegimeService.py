@@ -265,7 +265,6 @@ class RegimeService:
 if __name__ == '__main__':
 
     from service.fetch.SystemFetchDataset import SystemFetchDataset
-
     fetch = SystemFetchDataset()
     datasets = fetch._acquire_stock_dataset("000878", "20251225", "20251225", "1")
     time_interval = TimeInterval.from_period(int(1))
