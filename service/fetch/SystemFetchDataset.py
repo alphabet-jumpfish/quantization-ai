@@ -39,6 +39,7 @@ class SystemFetchDataset:
         return datasets
 
 
+
 if __name__ == '__main__':
     fetch = SystemFetchDataset()
     datasets = fetch._acquire_stock_dataset("000878", "20251225", "20251225", "1")

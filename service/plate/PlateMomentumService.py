@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from service.fetch.SystemPlateFetchService import SystemPlateFetchService
+
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -38,21 +40,6 @@ class PlateMomentumService:
     def __init__(self):
         self.plate_cache = {}  # 缓存板块数据
 
-    def get_plate_list(self) -> pd.DataFrame:
-        """
-        获取所有行业板块列表
-        Returns:
-            板块列表 DataFrame
-        """
-        try:
-            plate_df = ak.stock_board_industry_name_em()
-            print(f"\n=== 获取板块列表成功 ===")
-            print(f"板块总数: {len(plate_df)}")
-            return plate_df
-        except Exception as e:
-            print(f"获取板块列表失败: {e}")
-            return pd.DataFrame()
-
     def get_plate_stocks(self, plate_name: str) -> List[PlateStockInfo]:
         """
         获取指定板块的成分股信息
@@ -65,27 +52,12 @@ class PlateMomentumService:
             # 从缓存中获取
             if plate_name in self.plate_cache:
                 return self.plate_cache[plate_name]
-
             # 获取板块成分股
-            stocks_df = ak.stock_board_industry_cons_em(symbol=plate_name)
-
-            stocks_info = []
-            for _, row in stocks_df.iterrows():
-                stock_info: PlateStockInfo = {
-                    'symbol': row['代码'],
-                    'name': row['名称'],
-                    'plate_name': plate_name,
-                    'close_price': float(row.get('最新价', 0)),
-                    'change_pct': float(row.get('涨跌幅', 0)),
-                    'volume': float(row.get('成交量', 0)),
-                    'amount': float(row.get('成交额', 0))
-                }
-                stocks_info.append(stock_info)
-
+            _plate_fetch = SystemPlateFetchService()
+            stocks_info = _plate_fetch.get_plate_stocks(plate_name=plate_name)
             # 缓存结果
             self.plate_cache[plate_name] = stocks_info
             return stocks_info
-
         except Exception as e:
             print(f"获取板块 {plate_name} 成分股失败: {e}")
             return []
@@ -127,8 +99,8 @@ class PlateMomentumService:
         )
 
     def _calculate_momentum_score(self, avg_change_pct: float,
-                                   up_stock_ratio: float,
-                                   change_pcts: List[float]) -> float:
+                                  up_stock_ratio: float,
+                                  change_pcts: List[float]) -> float:
         """
         计算动量得分 [-1, 1]
         Args:
@@ -155,8 +127,8 @@ class PlateMomentumService:
 
         # 综合得分
         momentum_score = (0.4 * change_score +
-                         0.3 * ratio_score +
-                         0.3 * consistency_score)
+                          0.3 * ratio_score +
+                          0.3 * consistency_score)
 
         return np.clip(momentum_score, -1.0, 1.0)
 
@@ -168,7 +140,8 @@ class PlateMomentumService:
         Returns:
             板块动量结果列表（按动量得分降序）
         """
-        plate_df = self.get_plate_list()
+        _plate_fetch = SystemPlateFetchService()
+        plate_df = _plate_fetch.get_plate_list()
 
         if plate_df.empty:
             return []
@@ -203,13 +176,10 @@ class PlateMomentumService:
             股票信息列表（按涨跌幅降序）
         """
         stocks_info = self.get_plate_stocks(plate_name)
-
         if not stocks_info:
             return []
-
         # 按涨跌幅降序排序
         stocks_info.sort(key=lambda x: x['change_pct'], reverse=True)
-
         return stocks_info[:top_n]
 
 

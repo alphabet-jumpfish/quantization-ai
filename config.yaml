@@ -1,0 +1,2 @@
+sqlite:
+  db_path: 'D:\namespace\tensorflow-project-namespace\quantization-ai\dataset\sqlite\sqlite.db'
