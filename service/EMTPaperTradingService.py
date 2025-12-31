@@ -11,6 +11,13 @@ project_root = Path(__file__).parent.parent
 os.chdir(str(project_root))  # 切换工作目录
 sys.path.insert(0, str(project_root))
 
+# 应用 vnpy_emt 兼容性补丁（修复 onDisconnected 参数问题）
+try:
+    from service.emt_patch import apply_patch
+    apply_patch()
+except Exception as e:
+    print(f"[警告] 补丁应用失败: {e}")
+
 from vnpy_emt import EmtGateway
 
 from datetime import datetime
@@ -186,7 +193,8 @@ class EMTMultiFactorStrategy(CtaTemplate):
 
             if should_exit:
                 self.sell(bar.close_price, abs(self.pos))
-                self.write_log(f"平仓 - {exit_reason} | 收益率: {current_pnl_pct:.2%} | 得分: {self.composite_score:.4f}")
+                self.write_log(
+                    f"平仓 - {exit_reason} | 收益率: {current_pnl_pct:.2%} | 得分: {self.composite_score:.4f}")
 
         self.put_event()
 
@@ -276,7 +284,7 @@ class EMTPaperTradingService:
         return True
 
     def deploy_strategy(self, symbol: str, exchange: Exchange = Exchange.SSE,
-                       buy_threshold: float = 0.5, sell_threshold: float = -0.5):
+                        buy_threshold: float = 0.5, sell_threshold: float = -0.5):
         """
         部署策略到模拟盘
         Args:
@@ -345,7 +353,7 @@ if __name__ == '__main__':
     print("=" * 70)
 
     # 选择运行模式
-    USE_SIMULATION_MODE = True  # 设置为True使用模拟模式，False使用真实EMT连接
+    USE_SIMULATION_MODE = False  # 设置为True使用模拟模式，False使用真实EMT连接
 
     if USE_SIMULATION_MODE:
         print("\n[运行模式] 模拟模式（不连接真实EMT服务器）")
@@ -375,7 +383,7 @@ if __name__ == '__main__':
 
     success = service.connect_emt_gateway(
         account="13675831750",  # 请替换为您的模拟账号
-        password="057a2bee"      # 请替换为您的模拟密码
+        password="057a2bee"  # 请替换为您的模拟密码
     )
 
     if not success:
@@ -414,4 +422,3 @@ if __name__ == '__main__':
 
     # 显示日志文件位置
     show_log_info()
-

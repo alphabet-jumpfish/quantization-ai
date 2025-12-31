@@ -10,7 +10,7 @@ numpy>=2.2.3
 vnpy>=4.3.0
 vnpy-ctastrategy>=1.4.0
 vnpy-sqlite>=1.1.3
-vnpy-emt==2.10.0
+vnpy-emt>=2.10.1
 vnpy_ctastrategy==1.4.1
 
 # 增加yaml
