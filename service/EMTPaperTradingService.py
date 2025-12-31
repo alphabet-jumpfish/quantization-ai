@@ -3,9 +3,12 @@
 使用vnpy_emt接入东方财富证券模拟交易系统
 """
 import sys
+import os
 from pathlib import Path
 
+# 关键修复：在导入VeighNa之前先切换到项目根目录
 project_root = Path(__file__).parent.parent
+os.chdir(str(project_root))  # 切换工作目录
 sys.path.insert(0, str(project_root))
 
 from datetime import datetime
