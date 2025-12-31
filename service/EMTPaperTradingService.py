@@ -191,11 +191,16 @@ class EMTPaperTradingService:
     东方财富模拟盘交易服务
     """
 
-    def __init__(self):
+    def __init__(self, simulation_mode=False):
+        """
+        Args:
+            simulation_mode: 是否使用模拟模式（不连接真实EMT服务器）
+        """
         self.event_engine = None
         self.main_engine = None
         self.cta_engine = None
         self.connected = False
+        self.simulation_mode = simulation_mode
 
     def init_engines(self):
         """初始化引擎"""
@@ -220,6 +225,11 @@ class EMTPaperTradingService:
         2. 需要在东方财富官网注册模拟账号
         3. 模拟账号注册地址：https://www.18.cn/
         """
+        if self.simulation_mode:
+            print("[模拟模式] 跳过真实EMT连接")
+            self.connected = True
+            return True
+
         try:
             from vnpy_emt import EmtGateway
             # 添加EMT网关
@@ -229,14 +239,12 @@ class EMTPaperTradingService:
                 "账号": account,
                 "密码": password,
                 "客户号": 1,
-                "行情协议": "TCP",
-                "行情服务器": "120.27.164.138",  # 东方财富模拟行情服务器
+                "行情地址": "120.27.164.138",  # 东方财富模拟行情服务器
                 "行情端口": 6002,
-                "交易服务器": "120.27.164.69",  # 东方财富模拟交易服务器
+                "交易地址": "120.27.164.69",  # 东方财富模拟交易服务器
                 "交易端口": 6001,
-                "行情路径": "",
-                "交易路径": "",
-                "授权码": ""
+                "行情协议": "TCP",
+                "日志级别": "INFO"
             }
             self.main_engine.connect(setting, "EMT")
             self.connected = True
@@ -294,25 +302,72 @@ class EMTPaperTradingService:
         return True
 
 
+def show_log_info():
+    """显示日志文件位置信息"""
+    from vnpy.trader.utility import get_folder_path
+    from datetime import datetime
+
+    log_folder = get_folder_path('log')
+    today = datetime.now().strftime('%Y%m%d')
+    log_file = f"{log_folder}/vt_{today}.log"
+
+    print("\n" + "=" * 70)
+    print("VeighNa 日志信息")
+    print("=" * 70)
+    print(f"日志目录: {log_folder}")
+    print(f"今日日志: vt_{today}.log")
+    print(f"完整路径: {log_file}")
+    print("\n[查看方法]")
+    print(f"1. 直接打开: {log_file}")
+    print(f"2. 命令行查看: type \"{log_file}\"")
+    print(f"3. 实时监控: Get-Content \"{log_file}\" -Wait -Tail 20")
+    print("=" * 70 + "\n")
+
+
 if __name__ == '__main__':
     print("=" * 70)
     print("东方财富模拟盘 - 多因子策略实盘测试")
     print("=" * 70)
 
+    # 选择运行模式
+    USE_SIMULATION_MODE = True  # 设置为True使用模拟模式，False使用真实EMT连接
+
+    if USE_SIMULATION_MODE:
+        print("\n[运行模式] 模拟模式（不连接真实EMT服务器）")
+        print("[说明] 此模式下策略逻辑可以正常运行，但不会执行真实交易")
+    else:
+        print("\n[运行模式] 真实连接模式")
+        print("\n[重要提示]")
+        print("1. 需要先在东方财富官网注册模拟账号")
+        print("2. 注册地址：https://www.18.cn/")
+        print("3. 请修改代码中的账号密码为您自己的模拟账号")
+        print("4. 如果连接失败，请检查：")
+        print("   - 账号密码是否正确")
+        print("   - 模拟账号是否已激活")
+        print("   - 服务器地址是否最新")
+
     # 步骤1：初始化服务
     print("\n[步骤1] 初始化服务")
-    service = EMTPaperTradingService()
+    service = EMTPaperTradingService(simulation_mode=USE_SIMULATION_MODE)
     service.init_engines()
 
     # 步骤2：连接模拟盘
     print("\n[步骤2] 连接东方财富模拟盘")
+
+    if not USE_SIMULATION_MODE:
+        print("[警告] 使用示例账号，可能无法连接")
+        print("[建议] 请替换为您自己的模拟账号")
+
     success = service.connect_emt_gateway(
-        account="13675831750",
-        password="057a2bee"
+        account="13675831750",  # 请替换为您的模拟账号
+        password="057a2bee"      # 请替换为您的模拟密码
     )
 
     if not success:
         print("\n[失败] 连接失败，请检查账号密码或网络")
+        if not USE_SIMULATION_MODE:
+            print("[提示] 如果您还没有模拟账号，请先注册：https://www.18.cn/")
+            print("[提示] 或者将 USE_SIMULATION_MODE 设置为 True 使用模拟模式")
         exit(1)
 
     # 步骤3：部署策略
@@ -341,4 +396,7 @@ if __name__ == '__main__':
     print("  3. 当因子得分 <= -0.5 时卖出")
     print("  4. 止损: 3% | 止盈: 8% | 移动止损: 2%")
     print("\n[监控] 请查看 VeighNa 日志获取交易详情")
+
+    # 显示日志文件位置
+    show_log_info()
 

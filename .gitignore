@@ -5,6 +5,7 @@ __pycache__/
 
 # 去掉模型
 model
+.vntrader**
 dataset/
 output/
 # 去掉数据层
