@@ -11,6 +11,8 @@ project_root = Path(__file__).parent.parent
 os.chdir(str(project_root))  # 切换工作目录
 sys.path.insert(0, str(project_root))
 
+from vnpy_emt import EmtGateway
+
 from datetime import datetime
 from typing import List, Dict
 from collections import deque
@@ -234,7 +236,7 @@ class EMTPaperTradingService:
             return True
 
         try:
-            from vnpy_emt import EmtGateway
+
             # 添加EMT网关
             self.main_engine.add_gateway(EmtGateway)
             # 配置连接参数
@@ -259,7 +261,17 @@ class EMTPaperTradingService:
             print("[提示] 请运行: pip install vnpy_emt")
             return False
         except Exception as e:
-            print(f"[错误] 连接失败: {e}")
+            # 修复编码错误问题
+            try:
+                error_msg = str(e)
+            except:
+                error_msg = "未知错误（编码问题）"
+            print(f"[错误] 连接失败: {error_msg}")
+            print("[提示] 可能的原因：")
+            print("  1. 账号密码不正确")
+            print("  2. 模拟账号未激活")
+            print("  3. 服务器地址已变更")
+            print("  4. 网络连接问题")
             return False
         return True
 
